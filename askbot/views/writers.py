@@ -13,6 +13,7 @@ import tempfile
 import time
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -207,7 +208,7 @@ def ask(request):#view used to ask a new question
     if request.user.is_authenticated:
         if request.user.is_read_only():
             referer = request.META.get("HTTP_REFERER", reverse('questions'))
-            request.user.message_set.create(message=_('Sorry, but you have only read access'))
+            messages.info(request, _('Sorry, but you have only read access'))
             return HttpResponseRedirect(referer)
 
     if askbot_settings.READ_ONLY_MODE_ENABLED:
@@ -262,7 +263,7 @@ def ask(request):#view used to ask a new question
                     )
                     return HttpResponseRedirect(question.get_absolute_url())
                 except exceptions.PermissionDenied as e:
-                    request.user.message_set.create(message = str(e))
+                    messages.error(request, str(e))
                     return HttpResponseRedirect(reverse('index'))
 
             else:
@@ -514,7 +515,7 @@ def edit_question(request, id):
         return render(request, 'question_edit.html', data)
 
     except exceptions.PermissionDenied as e:
-        request.user.message_set.create(message = str(e))
+        messages.error(request, str(e))
         return HttpResponseRedirect(question.get_absolute_url())
 
 @login_required
@@ -618,7 +619,7 @@ def edit_answer(request, id):
         return render(request, 'answer_edit.html', data)
 
     except exceptions.PermissionDenied as e:
-        request.user.message_set.create(message = str(e))
+        messages.error(request, str(e))
         return HttpResponseRedirect(answer.get_absolute_url())
 
 #todo: rename this function to post_new_answer
@@ -680,11 +681,11 @@ def answer(request, id, form_class=forms.AnswerForm):#process a new answer
 
                     return HttpResponseRedirect(answer.get_absolute_url())
                 except askbot_exceptions.AnswerAlreadyGiven as e:
-                    request.user.message_set.create(message = str(e))
+                    messages.info(request, str(e))
                     answer = question.thread.get_answers_by_user(user)[0]
                     return HttpResponseRedirect(answer.get_absolute_url())
                 except exceptions.PermissionDenied as e:
-                    request.user.message_set.create(message = str(e))
+                    messages.error(request, str(e))
             else:
                 if request.session.session_key is None:
                     return HttpResponseForbidden()
@@ -991,7 +992,7 @@ def repost_answer_as_comment(request, destination=None):
 
         if destination_post is None:
             message = _('Error - could not find the destination post')
-            request.user.message_set.create(message=message)
+            messages.error(request, message)
             return HttpResponseRedirect(answer.get_absolute_url())
 
         if len(answer.text) <= askbot_settings.MAX_COMMENT_LENGTH:
@@ -1017,7 +1018,7 @@ def repost_answer_as_comment(request, destination=None):
                 'Cannot convert, because text has more characters than '
                 '%(max_chars)s - maximum allowed for comments'
             ) % {'max_chars': askbot_settings.MAX_COMMENT_LENGTH}
-            request.user.message_set.create(message=message)
+            messages.info(request, message)
 
         return HttpResponseRedirect(answer.get_absolute_url())
     else:

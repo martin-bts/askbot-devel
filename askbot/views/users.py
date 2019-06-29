@@ -21,6 +21,7 @@ from django.db.models import Count
 from django.db.models import Q
 from django.conf import settings as django_settings
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core import exceptions as django_exceptions
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib.contenttypes.models import ContentType
@@ -270,7 +271,7 @@ def manage_account(request, subject, context):
 
     if not request.user.can_manage_account(subject):
         msg = _('Sorry, something is not right here...')
-        request.user.message_set.create(message=msg)
+        messages.error(request, msg)
         return HttpResponseRedirect(subject.get_absolute_url())
 
     exporting = False
@@ -286,13 +287,13 @@ def manage_account(request, subject, context):
             else:
                 subject.request_account_termination()
                 user_msg = _('Thank you, you will soon hear from the site administrator.')
-                request.user.message_set.create(message=user_msg)
+                messages.error(request, user_msg)
 
         elif 'export_data' in request.POST:
             from askbot.tasks import export_user_data
             if has_todays_backup:
                 user_msg = _('Only one data backup is allowed per day, please try tomorrow.')
-                request.user.message_set.create(message=user_msg)
+                messages.info(request, user_msg)
             else:
                 defer_celery_task(export_user_data, args=(subject.pk,))
                 if not django_settings.CELERY_ALWAYS_EAGER:
