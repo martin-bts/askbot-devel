@@ -2,3 +2,4 @@ factory_boy
 coverage
 -e git+https://github.com/dcollinsn/lamson#egg=lamson
 django-lamson
+psychopg2-binary
