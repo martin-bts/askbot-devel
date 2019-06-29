@@ -5,6 +5,7 @@ import askbot
 import site
 import sys
 import dj_database_url
+from django.contrib.messages import constants as message_level
 from jinja2.runtime import Undefined
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -335,6 +336,13 @@ VERIFIER_EXPIRE_DAYS = 3
 AVATAR_AUTO_GENERATE_SIZES = (16, 32, 48, 128) #change if avatars are sized differently
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+MESSAGE_TAGS = {
+    message_level.INFO:    'notification_info',
+    message_level.SUCCESS: 'notification_success',
+    message_level.WARNING: 'notification_warning',
+    message_level.ERROR:    'notification_error',
+}
 
 class DisableMigrations(object):
     def __contains__(self, item):

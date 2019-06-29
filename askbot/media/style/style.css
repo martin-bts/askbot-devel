@@ -311,6 +311,19 @@ body.user-messages {
   line-height: 34px;
   margin: 0 !important;
 }
+
+.notify .notification_success {
+  background-color: #b5f569;
+}
+
+.notify .notification_warning {
+  backgorund-color: #fca840;
+}
+
+.notify .notification_error {
+  background-color: #f58469;
+}
+
 .wait-icon-box {
   text-align: center;
   margin: 5px 0 8px;
