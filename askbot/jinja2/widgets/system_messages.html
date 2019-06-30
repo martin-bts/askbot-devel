@@ -11,9 +11,17 @@
                   {% endif %}
             {% endfor %}
         {% endif %}
-        {% for message in messages %}
-            <p class="notification {{ message.tags }}">{{ message }}</p>
-        {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                <p class="notification {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+        {% if group_messaging_notifications %}
+            {% for message in group_messaging_notifications %}
+                <p class="notification {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
         <a id="closeNotify" onclick="notify.close(true)"></a>
     </div>
 </div>
