@@ -86,7 +86,7 @@ class ViewsTests(GroupMessagingTests):
     def get_view_context(self, view_class, data=None, user=None, method='GET'):
         spec = ['REQUEST', 'user']
         assert(method in ('GET', 'POST'))
-        spec.append(method)
+        spec += ['GET', 'POST']
         request = Mock(spec=spec)
         if method == 'GET':
             request.GET = data
@@ -398,3 +398,72 @@ class ModelsTests(GroupMessagingTests):
         time.sleep(1.5)
         last_visits = LastVisitTime.objects.filter(message=root, user=self.sender)
         self.assertEqual(last_visits.count(), 1)
+
+class NotificationTests(GroupMessagingTests):
+
+    def create_notification(self, user, text='Hello World!'):
+        return Message.notifications.create(sender=user, recipient=user, text=text)
+
+    def test_create_notification(self):
+        """
+        find out if notifications are created as expected
+        """
+        test_message = 'Hello world!'
+        notification = self.create_notification(self.sender, test_message)
+        self.assertEqual(notification.text, test_message)
+        self.assertEqual(notification.sender, self.sender)
+        self.assertIn(get_personal_group(self.sender), notification.recipients.all())
+        self.assertEqual(notification.sender, self.sender)
+
+    def test_find_notification_in_resultsets_count(self):
+        self.setup_three_message_thread() # have some messages
+
+        before_cnt_messages      = Message.objects.all().count()
+        before_cnt_notifications = Message.notifications.count()
+        try:
+            before_cnt_threads = Message.objects.get_threads(sender=self.sender).count()
+        except AttributeError:
+            before_cnt_threads = 0
+
+        notification = self.create_notification(self.sender, 'Just passing through.')
+
+        after_cnt_messages      = Message.objects.all().count()
+        after_cnt_notifications = Message.notifications.count()
+        try:
+            after_cnt_threads = Message.objects.get_threads(sender=self.sender).count()
+        except AttributeError:
+            after_cnt_threads = 0
+
+        self.assertEqual(before_cnt_messages,      after_cnt_messages-1)
+        self.assertEqual(before_cnt_notifications, after_cnt_notifications - 1)
+        self.assertEqual(before_cnt_threads,       after_cnt_threads)
+
+    def test_get_and_delete_messages(self):
+        self.setup_three_message_thread()  # have some messages
+        test_message = 'Just passing through.'
+
+        before_cnt_notifications = Message.notifications.count()
+        notification = self.create_notification(self.sender, test_message)
+        messages = Message.notifications.get_and_gelete_messages(self.sender)
+        after_cnt_notifications = Message.notifications.count()
+
+        self.assertEquals(after_cnt_notifications, 0)
+        self.assertEquals(messages[-1].message, test_message)
+
+        Message.notifications.get_and_gelete_messages(self.recipient)
+        for i in range(1,10):
+            self.create_notification(self.sender, test_message)
+            self.create_notification(self.recipient, test_message)
+
+        a = Message.notifications.filter(sender=self.sender).count()
+        b = Message.notifications.filter(sender=self.recipient).count()
+        c = Message.notifications.count()
+
+        self.assertEquals(a + b, c)
+
+        recipients_notifications = Message.notifications.get_and_gelete_messages(self.recipient)
+
+        self.assertEquals(len(recipients_notifications), b)
+
+        for i in recipients_notifications:
+            self.assertEquals(i.message, test_message)
