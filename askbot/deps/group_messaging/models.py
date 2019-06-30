@@ -187,7 +187,7 @@ class NotificationManager(models.Manager):
     # I don't think we need to provide our own count
     #def count(self):
 
-    def get_and_gelete_messages(self, user):
+    def get_and_delete_messages(self, user):
         all_notifications = self.all().filter(
             recipients__in=[get_personal_group(user)])
         what_we_came_for = [

@@ -444,13 +444,13 @@ class NotificationTests(GroupMessagingTests):
 
         before_cnt_notifications = Message.notifications.count()
         notification = self.create_notification(self.sender, test_message)
-        messages = Message.notifications.get_and_gelete_messages(self.sender)
+        messages = Message.notifications.get_and_delete_messages(self.sender)
         after_cnt_notifications = Message.notifications.count()
 
         self.assertEquals(after_cnt_notifications, 0)
         self.assertEquals(messages[-1].message, test_message)
 
-        Message.notifications.get_and_gelete_messages(self.recipient)
+        Message.notifications.get_and_delete_messages(self.recipient)
         for i in range(1,10):
             self.create_notification(self.sender, test_message)
             self.create_notification(self.recipient, test_message)
@@ -461,7 +461,7 @@ class NotificationTests(GroupMessagingTests):
 
         self.assertEquals(a + b, c)
 
-        recipients_notifications = Message.notifications.get_and_gelete_messages(self.recipient)
+        recipients_notifications = Message.notifications.get_and_delete_messages(self.recipient)
 
         self.assertEquals(len(recipients_notifications), b)
 
