@@ -4,6 +4,7 @@ import functools
 import inspect
 import logging
 from django.conf import settings
+from django.contrib import messages
 from django.core import exceptions as django_exceptions
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseForbidden, Http404
@@ -127,7 +128,7 @@ def check_authorization_to_post(func_or_message):
             if request.user.is_anonymous:
                 #todo: expand for handling ajax responses
                 if askbot_settings.ALLOW_POSTING_BEFORE_LOGGING_IN == False:
-                    request.user.message_set.create(message=str(message))
+                    messages.info(request, str(message))
                     params = 'next=%s' % request.path
                     return HttpResponseRedirect(url_utils.get_login_url() + '?' + params)
             return view_func(request, *args, **kwargs)

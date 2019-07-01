@@ -359,10 +359,12 @@ def retag_question(request, id):
                         'new_tags': question.thread.tagnames
                     }
 
-                    if request.user.message_set.count() > 0:
-                        #todo: here we will possibly junk messages
-                        message = request.user.get_and_delete_messages()[-1]
-                        response_data['message'] = message
+                    # since we iterate over all messages, Django will delete them
+                    all_session_messages = [ m for m in messages.get_messages() ]
+                    if len(all_session_messages) > 0:
+                        response_data['message'] = str(all_session_messages.pop())
+                        # resend the unused messages
+                        [ messages.info(str(m)) for m in all_session_messages ]
 
                     data = simplejson.dumps(response_data)
                     return HttpResponse(data, content_type="application/json")
@@ -393,7 +395,7 @@ def retag_question(request, id):
             data = simplejson.dumps(response_data)
             return HttpResponse(data, content_type="application/json")
         else:
-            request.user.message_set.create(message = str(e))
+            message.error(request, str(e))
             return HttpResponseRedirect(question.get_absolute_url())
 
 @login_required
