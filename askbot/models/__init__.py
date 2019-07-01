@@ -27,12 +27,16 @@ from django.utils.text import format_lazy
 from django.db.models import Count, Q
 from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.storage.base import Message as DjangoMessage
+from django.contrib.messages import constants as DjangoMessageLevel
 from django.core.cache import cache
 from django.core import exceptions as django_exceptions
 from askbot import exceptions as askbot_exceptions
 from askbot import const
 from askbot.const import message_keys
 from askbot.conf import settings as askbot_settings
+from askbot.deps.group_messaging.models import Message as GroupMessagingMessage
+from askbot.deps.group_messaging.models import get_personal_group
 from askbot.models.question import Thread
 from askbot.skins import utils as skin_utils
 from askbot.mail.messages import (WelcomeEmail,
@@ -166,13 +170,35 @@ class RelatedObjectSimulator(object):
     def filter(self, *args, **kwargs):
         return self.model_class.objects.filter(*args, **kwargs)
 
+    def get_and_delete_messages(self):
+        messages = []
+        for m in self.filter(user=self.user):
+            messages.append(DjangoMessage(DjangoMessageLevel.INFO, m.mesage))
+            m.delete()
+        return messages
 
-#django 1.4.1 and above
+class UserMessage(RelatedObjectSimulator):
+
+    def __init__(self, user, model_class):
+        super(UserMessage, self).__init__(user, model_class)
+        self.personal_group = get_personal_group(user)
+
+    def all(self):
+        return GroupMessagingMessage.notifications.all()
+
+    def count(self, **kwargs):
+        return GroupMessagingMessage.notifications.filter(recipients__in=[self.personal_group]).count()
+
+    def create(self, **kwargs):
+        return GroupMessagingMessage.notifications.create(sender=self.user, recipient=self.user, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        return GroupMessagingMessage.notifications.filter(*args, **kwargs)
+
 @property
 def user_message_set(self):
     return RelatedObjectSimulator(self, Message)
 
-#django 1.4.1 and above
 def user_get_and_delete_messages(self):
     messages = []
     for message in Message.objects.filter(user=self):
