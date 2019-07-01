@@ -179,7 +179,7 @@ class NotificationManager(models.Manager):
             # this is actually an error state
             # without receivers messages of type Message.NOTIFY_ONE can only
             # be deleted through manual database access.
-            recipients = [get_personal_grup(kwargs['sender'])]
+            recipients = [get_personal_group(kwargs['sender'])]
         message = super().create(**kwargs) # create a Message
         message.add_recipients(recipients)
         return message
