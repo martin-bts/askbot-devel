@@ -27,34 +27,3 @@ def user_messages(request):
         messages = request.user.get_and_delete_messages()
         return { 'user_messages': messages }
     return {}
-
-class LazyMessages(object):
-    """
-    Lazy message container, so messages aren't actually retrieved from
-    session and deleted until the template asks for them.
-
-    """
-    def __init__(self, request):
-        self.request = request
-
-    def __iter__(self):
-        return iter(self.messages)
-
-    def __len__(self):
-        return len(self.messages)
-
-    def __bool__(self):
-        return bool(self.messages)
-
-    def __str__(self):
-        return self.messages
-
-    def __getitem__(self, *args, **kwargs):
-        return self.messages.__getitem__(*args, **kwargs)
-
-    def _get_messages(self):
-        if hasattr(self, '_messages'):
-            return self._messages
-        self._messages = get_and_delete_messages(self.request)
-        return self._messages
-    messages = property(_get_messages)
