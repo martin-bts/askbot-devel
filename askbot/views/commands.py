@@ -12,6 +12,7 @@ from django.core import exceptions
 #from django.core.management import call_command
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -489,14 +490,14 @@ def subscribe_for_tags(request):
                             reason = 'good',
                             action = 'add'
                         )
-                request.user.message_set.create(
+                messages.success(request,
                     message = _('Your tag subscription was saved, thanks!')
                 )
             else:
                 message = _(
                     'Tag subscription was canceled (<a href="%(url)s">undo</a>).'
                 ) % {'url': escape(request.path) + '?tags=' + getattr(request,request.method)['tags']}
-                request.user.message_set.create(message = message)
+                messages.info(request, message = message)
             return HttpResponseRedirect(reverse('index'))
         else:
             data = {'tags': tag_names}
@@ -505,7 +506,7 @@ def subscribe_for_tags(request):
         all_tag_names = pure_tag_names + wildcards
         message = _('Please sign in to subscribe for: %(tags)s') \
                     % {'tags': ', '.join(all_tag_names)}
-        request.user.message_set.create(message = message)
+        messages.info(request, message = message)
         request.session['subscribe_for_tags'] = (pure_tag_names, wildcards)
         return HttpResponseRedirect(url_utils.get_login_url())
 
@@ -783,7 +784,7 @@ def close(request, id):#close question
             }
             return render(request, 'close.html', data)
     except exceptions.PermissionDenied as e:
-        request.user.message_set.create(message = str(e))
+        messages.error(request, message = str(e))
         return HttpResponseRedirect(question.get_absolute_url())
 
 @login_required
@@ -813,7 +814,7 @@ def reopen(request, id):#re-open question
             return render(request, 'reopen.html', data)
 
     except exceptions.PermissionDenied as e:
-        request.user.message_set.create(message = str(e))
+        messages.error(request, message = str(e))
         return HttpResponseRedirect(question.get_absolute_url())
 
 
@@ -865,9 +866,7 @@ def delete_post(request):
 def read_message(request):#marks message a read
     if request.method == "POST":
         if request.POST.get('formdata') == 'required':
-            request.session['message_silent'] = 1
-            if request.user.is_authenticated:
-                request.user.delete_messages()
+            [ x for x in messages.get_messages(request) ] # clear out messages
     return HttpResponse('')
 
 
@@ -1291,7 +1290,7 @@ def share_question_with_group(request):
             return HttpResponseRedirect(thread.get_absolute_url())
     except Exception:
         error_message = _('Sorry, looks like sharing request was invalid')
-        request.user.message_set.create(message=error_message)
+        messages.error(request, message=error_message)
         return HttpResponseRedirect(thread.get_absolute_url())
 
 @csrf.csrf_protect
@@ -1324,7 +1323,7 @@ def share_question_with_user(request):
             return HttpResponseRedirect(thread.get_absolute_url())
     except Exception:
         error_message = _('Sorry, looks like sharing request was invalid')
-        request.user.message_set.create(message=error_message)
+        messages.error(request, message=error_message)
         return HttpResponseRedirect(thread.get_absolute_url())
 
 @csrf.csrf_protect
@@ -1424,7 +1423,7 @@ def publish_answer(request):
         answer.add_to_groups([enquirer_group])
         message = _('The answer is now published')
         #todo: notify enquirer by email about the post
-    request.user.message_set.create(message=message)
+    messages.info(request, message=message)
     return {'redirect_url': answer.get_absolute_url()}
 
 @csrf.csrf_protect
