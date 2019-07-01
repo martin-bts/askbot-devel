@@ -5,16 +5,13 @@ Time-stamp: <2008-07-19 23:16:19 carljm context_processors.py>
 
 """
 from django.conf import settings as django_settings
-from askbot.user_messages import get_and_delete_messages
 
 def user_messages(request):
     """
     Returns session messages for the current session.
-
     """
     if not request.path.startswith('/' + django_settings.ASKBOT_URL):
-        #todo: a hack, for real we need to remove this middleware
-        #and switch to the new-style session messages
+        # only do work when visiting the Askbot app
         return {}
 
     #the get_and_delete_messages is added to anonymous user by the
@@ -23,7 +20,11 @@ def user_messages(request):
     #the AnonymousUser is installed in the response and thus
     #the Askbot's session messages hack will fail, so we have
     #an extra if statement here.
-    if hasattr(request.user, 'get_and_delete_messages'):
-        messages = request.user.get_and_delete_messages()
+    if  hasattr(request.user, 'message_set') \
+    and hasattr(request.user.message_set, 'get_and_delete_messages'):
+        messages = request.user.message_set.get_and_delete_messages()
         return { 'user_messages': messages }
-    return {}
+    elif hasattr(request.user, 'get_and_delete_messages'):
+        messages = request.user.get_and_delete_messages()
+        return {'user_messages': messages}
+    return {} # default, return empty dict
