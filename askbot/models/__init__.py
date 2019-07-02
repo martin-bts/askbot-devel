@@ -27,6 +27,8 @@ from django.utils.text import format_lazy
 from django.db.models import Count, Q
 from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.storage.base import Message as DjangoMessage
+from django.contrib.messages import constants as DjangoMessageLevel
 from django.core.cache import cache
 from django.core import exceptions as django_exceptions
 from askbot import exceptions as askbot_exceptions
@@ -166,13 +168,18 @@ class RelatedObjectSimulator(object):
     def filter(self, *args, **kwargs):
         return self.model_class.objects.filter(*args, **kwargs)
 
+    def get_and_delete_messages(self):
+        messages = []
+        for m in self.filter(user=self.user):
+            messages.append(DjangoMessage(DjangoMessageLevel.INFO, m.message))
+            m.delete()
+        return messages
 
-#django 1.4.1 and above
 @property
 def user_message_set(self):
     return RelatedObjectSimulator(self, Message)
 
-#django 1.4.1 and above
+# deprecated in favor of RelatedObjectSimulator.get_and_delete_messages
 def user_get_and_delete_messages(self):
     messages = []
     for message in Message.objects.filter(user=self):
