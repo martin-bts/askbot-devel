@@ -5,6 +5,8 @@ import askbot
 import site
 import sys
 import dj_database_url
+from django.contrib.messages import constants as message_level
+from jinja2.runtime import Undefined
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 #this line is added so that we can import pre-packaged askbot dependencies
@@ -76,6 +78,14 @@ ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 # Make up some unique string, and don't share it with anybody.
 SECRET_KEY = '37c8505c47c1aea8dbe214ba31bce63d'
 
+ASKBOT_COMMON_CONTEXT_PREPROCESSORS = [
+    'askbot.context.application_settings',
+    'askbot.user_messages.context_processors.user_messages',# must be before auth
+    'django.contrib.messages.context_processors.messages',
+    'django.contrib.auth.context_processors.auth', # this is required for the admin app
+                                                   # not sure if the admin app even uses jinja2 ...
+]
+
 TEMPLATES = (
     {
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
@@ -115,7 +125,7 @@ MIDDLEWARE = (
     #'django.middleware.sqlprint.SqlPrintingMiddleware',
 
     #below is askbot stuff for this tuple
-    'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware',
+    'askbot.user_messages.middlewares.AnonymousUserMessagesMiddleware',
     'askbot.middleware.forum_mode.ForumModeMiddleware',
     'askbot.middleware.cancel.CancelActionMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -322,6 +332,13 @@ VERIFIER_EXPIRE_DAYS = 3
 AVATAR_AUTO_GENERATE_SIZES = (16, 32, 48, 128) #change if avatars are sized differently
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+MESSAGE_TAGS = {
+    message_level.INFO:    'notification_info',
+    message_level.SUCCESS: 'notification_success',
+    message_level.WARNING: 'notification_warning',
+    message_level.ERROR:    'notification_error',
+}
 
 class DisableMigrations(object):
     def __contains__(self, item):
