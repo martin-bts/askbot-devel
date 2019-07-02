@@ -60,7 +60,7 @@ from askbot.utils.html import site_url
 from askbot.deps.django_authopenid.ldap_auth import ldap_create_user
 from askbot.deps.django_authopenid.ldap_auth import ldap_authenticate
 from askbot.deps.django_authopenid.exceptions import OAuthError
-from askbot.middleware.anon_user import connect_messages_to_anon_user
+from askbot.user_messages.anon_user import AnonymousMessageManager
 from askbot.utils.loading import load_module
 from sanction.client import Client as OAuth2Client
 from urllib.parse import urlparse
@@ -179,7 +179,7 @@ def login(request, user):
 def logout(request):
     from django.contrib.auth import logout as _logout#for login I've added wrapper below - called login
     _logout(request)
-    connect_messages_to_anon_user(request)
+    AnonymousMessageManager.connect_anonymous_user(request)
 
 def logout_page(request):
     data = {
