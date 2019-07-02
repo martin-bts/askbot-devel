@@ -5,16 +5,15 @@ from askbot.mail.messages import GroupMessagingEmailAlert
 from django.conf import settings as django_settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
+from django.contrib.messages.storage.base import Message as DjangoMessage
+from django.contrib.messages import constants as DjangoMessageLevel
 from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models import signals
 from django.template import Context
 from django.template.loader import get_template
 from django.utils import timezone
-try:
-    from importlib import import_module
-except ImportError:
-    from django.utils.importlib import import_module
+from importlib import import_module
 from django.utils.translation import ugettext as _
 from askbot.deps.group_messaging.signals import response_created
 from askbot.deps.group_messaging.signals import thread_created
@@ -138,6 +137,65 @@ class MessageMemo(models.Model):
         unique_together = ('user', 'message')
         app_label = 'group_messaging'
 
+class NotificationManager(models.Manager):
+    """
+    a manager for Messages that are used as brief, read-once user notifications
+
+    the interface is taken from askbot.models.RelatedObjectSimulator plus
+    user_get_and_delete_messages because that's how we wil use Messages.
+
+    searching the project at the time of this writing, this means we need
+    all()
+    create()
+    count()
+    get_and_delete_messages()
+
+    MAYBE
+    It could be wise to create a thread/parent message "Notifications" for each
+    user and make all notifications a response to it.
+    """
+
+    def get_queryset(self):
+        """
+        according to [the fine manual](https://docs.djangoproject.com/en/2.2/topics/db/managers/#django.db.models.Manager)
+        we change the behaviour of all() my overloading get_queryset()
+        """
+        return super().get_queryset().filter(message_type=Message.NOTIFY_ONCE)
+
+    def create(self, **kwargs):
+        kwargs['message_type'] = Message.NOTIFY_ONCE
+        kwargs['root'] = None
+        kwargs['parent'] = None
+        # MAYBE, there are nice use cases for sending notifications to multiple
+        # users at once. In that case get_and_delete must have different
+        # semantics.
+        # For now we expect this method to be called with recipient=<type User>
+        recipients = kwargs.pop('recipients', [])
+        try:
+            recipients.append(get_personal_group(kwargs.pop('recipient')))
+        except:
+            pass
+        if len(recipients) == 0:
+            # this is actually an error state
+            # without receivers messages of type Message.NOTIFY_ONE can only
+            # be deleted through manual database access.
+            recipients = [get_personal_group(kwargs['sender'])]
+        message = super().create(**kwargs) # create a Message
+        message.add_recipients(recipients)
+        return message
+
+    # I don't think we need to provide our own count
+    #def count(self):
+
+    def get_and_delete_messages(self, user):
+        all_notifications = self.all().filter(
+            recipients__in=[get_personal_group(user)])
+        what_we_came_for = [
+            DjangoMessage(DjangoMessageLevel.INFO, m.text)
+            for m in all_notifications ]
+        for message in all_notifications:
+            message.delete()
+        return what_we_came_for
 
 class MessageManager(models.Manager):
     """model manager for the :class:`Message`"""
@@ -172,7 +230,7 @@ class MessageManager(models.Manager):
             'root': None,
             'message_type': Message.STORED
         }
-        if recipient:
+        if recipient: # Fixme: does this condition miss an "is None"?
             filter_kwargs['recipients__in'] = recipient.groups.all()
         else:
             #todo: possibly a confusing hack - for this branch -
@@ -291,10 +349,12 @@ class Message(models.Model):
     STORED = 0
     TEMPORARY = 1
     ONE_TIME = 2
+    NOTIFY_ONCE = 3
     MESSAGE_TYPE_CHOICES = (
         (STORED, 'email-like message, stored in the inbox'),
         (ONE_TIME, 'will be shown just once'),
-        (TEMPORARY, 'will be shown until certain time')
+        (TEMPORARY, 'will be shown until certain time'),
+        (NOTIFY_ONCE, 'can only be retrieved once')
     )
 
     message_type = models.SmallIntegerField(
@@ -336,6 +396,7 @@ class Message(models.Model):
     active_until = models.DateTimeField(blank=True, null=True)
 
     objects = MessageManager()
+    notifications = NotificationManager()
 
     def add_recipient_names_to_senders_info(self, recipient_groups):
         names = get_recipient_names(recipient_groups)
