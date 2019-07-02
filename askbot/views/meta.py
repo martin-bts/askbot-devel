@@ -6,6 +6,7 @@ This module contains a collection of views displaying all sorts of secondary and
 from django.shortcuts import render_to_response, get_object_or_404
 from django.conf import settings as django_settings
 from django.urls import reverse
+from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.shortcuts import render
 from django.template import RequestContext
@@ -127,7 +128,7 @@ def feedback(request):
     if askbot_settings.FEEDBACK_MODE == 'auth-only':
         if request.user.is_anonymous:
             message = _('Please sign in or register to send your feedback')
-            request.user.message_set.create(message=message)
+            messages.info(request, message)
             redirect_url = get_login_url() + '?next=' + request.path
             return HttpResponseRedirect(redirect_url)
     elif askbot_settings.FEEDBACK_MODE == 'disabled':
@@ -156,7 +157,7 @@ def feedback(request):
             email.send(get_users_by_role('recv_feedback'))
 
             message = _('Thanks for the feedback!')
-            request.user.message_set.create(message=message)
+            messages.success(request, message)
             return HttpResponseRedirect(get_next_url(request))
     else:
         form = FeedbackForm(

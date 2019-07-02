@@ -41,6 +41,7 @@ from askbot.conf import settings as askbot_settings
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
+from django.contrib import messages
 from django.urls import reverse
 from django.shortcuts import render
 from django.template.loader import get_template
@@ -373,7 +374,7 @@ def complete_cas_signin(request):
             user = None
             deny_msg = django_settings.CAS_USER_FILTER_DENIED_MSG
             if deny_msg:
-                request.user.message_set.create(message=deny_msg)
+                messages.error(request, message=deny_msg)
                 return HttpResponseRedirect(next_url)
 
     get_username_func_path = django_settings.ASKBOT_CAS_GET_USERNAME
@@ -435,7 +436,7 @@ def complete_oauth1_signin(request):
                 'connecting to %(provider)s, please try again '
                 'or use another provider'
             ) % {'provider': request.session['oauth_provider_name']}
-        request.user.message_set.create(message=msg)
+        messages.error(request, message=msg)
         return HttpResponseRedirect(next_url)
     else:
         user = authenticate(
@@ -572,7 +573,7 @@ def signin(request, template_name='authopenid/signin.html'):
                                 login_form.cleaned_data['new_password']
                             request.user.set_password(new_password)
                             request.user.save()
-                            request.user.message_set.create(
+                            messages.success(request,
                                         message = _('Your new password is saved')
                                     )
                             return HttpResponseRedirect(next_url)
@@ -668,7 +669,7 @@ def signin(request, template_name='authopenid/signin.html'):
                             'connecting to %(provider)s, please try again '
                             'or use another provider'
                         ) % {'provider': provider_name}
-                    request.user.message_set.create(message=msg)
+                    messages.error(request, message=msg)
 
             elif login_form.cleaned_data['login_type'] == 'oauth2':
                 try:
@@ -684,7 +685,7 @@ def signin(request, template_name='authopenid/signin.html'):
                             'connecting to %(provider)s, please try again '
                             'or use another provider'
                         ) % {'provider': provider_name}
-                    request.user.message_set.create(message=msg)
+                    messages.error(request, message=msg)
 
             elif login_form.cleaned_data['login_type'] == 'wordpress_site':
                 #here wordpress_site means for a self hosted wordpress blog not a wordpress.com blog
@@ -711,7 +712,7 @@ def signin(request, template_name='authopenid/signin.html'):
                 except WpFault as e:
                     logging.critical(str(e))
                     msg = _('The login password combination was not correct')
-                    request.user.message_set.create(message = msg)
+                    messages.error(request, message=msg)
             else:
                 #raise 500 error - unknown login type
                 pass
@@ -1026,7 +1027,7 @@ def finalize_generic_signin(
                     'please sign out first. Otherwise, please report the incident '
                     'to the site administrator.'
                 )
-                request.user.message_set.create(message=message)
+                messages.info(request, message=message)
                 return HttpResponseRedirect(redirect_url)
             except UserAssociation.DoesNotExist:
                 #register new association
@@ -1056,7 +1057,7 @@ def finalize_generic_signin(
             #user just checks if another login still works
             msg = _('Your %(provider)s login works fine') % \
                     {'provider': login_provider_name}
-            request.user.message_set.create(message = msg)
+            messages.info(request, message=msg)
             return HttpResponseRedirect(redirect_url)
     elif user:
         #login branch
@@ -1254,7 +1255,7 @@ def signin_failure(request, message):
     """
     falure with openid signin. Go back to signin page.
     """
-    request.user.message_set.create(message = message)
+    messages.error(request, message=message)
     return show_signin_view(request)
 
 @not_authenticated
@@ -1311,7 +1312,7 @@ def verify_email_and_register(request):
                 'Sorry, registration failed. '
                 'The token can be already used or has expired. Please try again'
             )
-            request.user.message_set.create(message=message)
+            messages.error(request, message=message)
             return HttpResponseRedirect(reverse('index'))
     else:
         data = {'page_class': 'validate-email-page'}

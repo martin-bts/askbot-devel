@@ -5,6 +5,7 @@ enabling support of closed forum mode
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext as _
 from django.conf import settings
+from django.contrib import messages
 from django.urls import resolve
 from askbot.conf import settings as askbot_settings
 from askbot.utils.views import is_askbot_view
@@ -61,7 +62,7 @@ class ForumModeMiddleware(object):
                 return None
 
             if is_askbot_view(resolver_match.func):
-                request.user.message_set.create(
+                messages.info(request,
                     _('Please log in to use %s') % \
                     askbot_settings.APP_SHORT_NAME
                 )
