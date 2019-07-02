@@ -50,7 +50,7 @@
     {% else %}
         askbot['settings']['allowedUploadFileTypes'] = [];
     {% endif %}
-    askbot['data']['haveFlashNotifications'] = {{ true|as_js_bool if user_messages or messages or group_messaging_notifications else false|as_js_bool }};
+    askbot['data']['haveFlashNotifications'] = {{ true|as_js_bool if user_messages or messages else false|as_js_bool }};
     askbot['data']['activeTab'] = '{{ active_tab }}';
     askbot['settings']['csrfCookieName'] = '{{ settings.CSRF_COOKIE_NAME }}';
     {% if search_state %}

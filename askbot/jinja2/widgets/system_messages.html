@@ -3,11 +3,7 @@
         {% if user_messages %}
             {% for message in user_messages %}
                   {% if message %}
-                  <p class="notification">{{ message }}
-                      {% if settings.DEBUG %}
-                      <span style="font: bold;">(deprecated messaging system!)</span>
-                      {% endif %}
-                   </p>
+                  <p class="notification">{{ message }}</p>
                   {% endif %}
             {% endfor %}
         {% endif %}
@@ -16,12 +12,6 @@
                 <p class="notification {{ message.tags }}">{{ message }}</p>
             {% endfor %}
         {% endif %}
-        {% if group_messaging_notifications %}
-            {% for message in group_messaging_notifications %}
-                <p class="notification {{ message.tags }}">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-
         <a id="closeNotify" onclick="notify.close(true)"></a>
     </div>
 </div>
