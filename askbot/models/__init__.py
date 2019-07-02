@@ -173,7 +173,7 @@ class RelatedObjectSimulator(object):
     def get_and_delete_messages(self):
         messages = []
         for m in self.filter(user=self.user):
-            messages.append(DjangoMessage(DjangoMessageLevel.INFO, m.mesage))
+            messages.append(DjangoMessage(DjangoMessageLevel.INFO, m.message))
             m.delete()
         return messages
 
