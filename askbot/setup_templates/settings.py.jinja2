@@ -138,9 +138,9 @@ MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware', # prerequisite for user messages
     'django.contrib.messages.middleware.MessageMiddleware', # for user messages
     'django.middleware.common.CommonMiddleware',               # FIXME: why do we even have this?
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # FIXME: why do we even have this?
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # FIXME: why do we even have this? -> i THINK this gives us request.user
 
-    'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware', # up next: get rid of this
+    'askbot.user_messages.middlewares.AnonymousUserMessagesMiddleware',
     'askbot.middleware.forum_mode.ForumModeMiddleware',
     'askbot.middleware.cancel.CancelActionMiddleware',
     'askbot.middleware.view_log.ViewLogMiddleware',
