@@ -87,10 +87,9 @@ SECRET_KEY = '37c8505c47c1aea8dbe214ba31bce63d'
 ASKBOT_COMMON_CONTEXT_PREPROCESSORS = [
     'askbot.context.application_settings',
     'askbot.user_messages.context_processors.user_messages',# must be before auth
-    'django.contrib.messages.context_processors.messages', # this  will replace the one above soon
+    'django.contrib.messages.context_processors.messages',
     'django.contrib.auth.context_processors.auth', # this is required for the admin app
                                                    # not sure if the admin app even uses jinja2 ...
-    'askbot.deps.group_messaging.context.group_messaging_context'
 ]
 
 TEMPLATES = (
@@ -132,7 +131,7 @@ MIDDLEWARE = (
     #'django.middleware.sqlprint.SqlPrintingMiddleware',
 
     #below is askbot stuff for this tuple
-    'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware',
+    'askbot.user_messages.middlewares.AnonymousUserMessagesMiddleware',
     'askbot.middleware.forum_mode.ForumModeMiddleware',
     'askbot.middleware.cancel.CancelActionMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
