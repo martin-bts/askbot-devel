@@ -29,6 +29,7 @@ from django.views.decorators import csrf
 from django.urls import reverse
 from django.core import exceptions as django_exceptions
 from django.contrib.humanize.templatetags import humanize
+from django.contrib import messages
 from django.http import QueryDict
 from django.conf import settings as django_settings
 
@@ -279,7 +280,7 @@ def questions(request, **kwargs):
                     'Please go to Settings -> %s '
                     'and set the base url for your site to function properly'
                 ) % url
-                request.user.message_set.create(message=msg)
+                messages.info(request, msg)
 
         return render(request, 'main_page.html', template_data)
         #print timezone.now() - before
@@ -441,7 +442,7 @@ def question(request, id):#refactor - long subroutine. display question body, an
     try:
         question_post.assert_is_visible_to(request.user)
     except exceptions.QuestionHidden as error:
-        request.user.message_set.create(message = str(error))
+        messages.info(request, str(error))
         return HttpResponseRedirect(reverse('index'))
 
     #redirect if slug in the url is wrong
@@ -477,7 +478,7 @@ def question(request, id):#refactor - long subroutine. display question body, an
                 'Sorry, the comment you are looking for has been '
                 'deleted and is no longer accessible'
             )
-            request.user.message_set.create(message = error_message)
+            messages.error(request, error_message)
             return HttpResponseRedirect(question_post.thread.get_absolute_url())
 
         if str(show_comment.thread._question_post().id) != str(id):
@@ -487,11 +488,11 @@ def question(request, id):#refactor - long subroutine. display question body, an
         try:
             show_comment.assert_is_visible_to(request.user)
         except exceptions.AnswerHidden as error:
-            request.user.message_set.create(message = str(error))
+            messages.info(request, str(error))
             #use reverse function here because question is not yet loaded
             return HttpResponseRedirect(reverse('question', kwargs = {'id': id}))
         except exceptions.QuestionHidden as error:
-            request.user.message_set.create(message = str(error))
+            messages.info(request, str(error))
             return HttpResponseRedirect(reverse('index'))
 
     elif show_answer:
@@ -506,7 +507,7 @@ def question(request, id):#refactor - long subroutine. display question body, an
         try:
             show_post.assert_is_visible_to(request.user)
         except django_exceptions.PermissionDenied as error:
-            request.user.message_set.create(message = str(error))
+            messages.info(request, str(error))
             return HttpResponseRedirect(reverse('question', kwargs = {'id': id}))
 
     thread = question_post.thread
@@ -520,7 +521,7 @@ def question(request, id):#refactor - long subroutine. display question body, an
                 'request_lang': get_language_name(request_lang),
                 'home_url': reverse_i18n(request_lang, 'questions')
             })
-            request.user.message_set.create(message=message)
+            messages.info(request, message)
             return HttpResponseRedirect(thread.get_absolute_url())
 
     logging.debug('answer_sort_method=' + str(answer_sort_method))
