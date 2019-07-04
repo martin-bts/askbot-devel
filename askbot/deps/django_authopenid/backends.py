@@ -5,7 +5,7 @@ application
 import datetime
 import logging
 from django.contrib.auth.models import User
-form django.contrib import messages
+from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings as django_settings
 from django.utils import timezone
