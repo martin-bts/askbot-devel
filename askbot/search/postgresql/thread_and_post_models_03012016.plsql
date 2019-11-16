@@ -48,12 +48,8 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION setup_aggregates() RETURNS boolean AS
 $$
-DECLARE
-    onerow record;
 BEGIN
-    FOR onerow IN SELECT * FROM pg_proc WHERE proname = 'concat_tsvectors' AND proisagg LOOP
-        DROP AGGREGATE concat_tsvectors(tsvector);
-    END LOOP;
+    DROP AGGREGATE IF EXISTS concat_tsvectors(tsvector);
     CREATE AGGREGATE concat_tsvectors (
         BASETYPE = tsvector,
         SFUNC = tsv_add,
