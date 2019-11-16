@@ -8,7 +8,8 @@ import askbot.models.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('askbot', '0007_auto_20151220_0653'),
+        ('askbot', '0006_auto_20151220_0459'),
+
     ]
 
     operations = [
