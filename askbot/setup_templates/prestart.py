@@ -3,7 +3,7 @@
 import os
 import sys
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'askbot_app.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'askbot-site.settings')
 
 project_dir = os.environ.get('ASKBOT_SITE')
 os.chdir(project_dir)

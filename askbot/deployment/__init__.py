@@ -10,11 +10,11 @@ from askbot.deployment import messages
 from askbot.deployment.messages import print_message
 from askbot.deployment import path_utils
 from askbot.utils.functions import generate_random_key
-from askbot.deployment.template_loader import DeploymentTemplate
+from askbot.deployment.base.template_loader import DeploymentTemplate
 from askbot.deployment.parameters import askbotCollection
 from askbot.deployment.base import ObjectWithOutput
 from askbot.deployment.deployables.components import DeployableComponent
-import askbot.deployment.deployables as deployable
+from askbot.deployment import deployables as deployable
 
 class AskbotSetup(ObjectWithOutput):
     ASKBOT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -314,7 +314,7 @@ class AskbotSetup(ObjectWithOutput):
         uwsgi.dst_dir = options['dir_name']
         uwsgi.context.update({
             'askbot_site': options['dir_name'],
-            'askbot_app': uwsgi.name, # defaults to askbot_app
+            'askbot_app': options['dir_name'], # defaults to askbot_app
         })
 
         # put the path to settings.py into manage.py
