@@ -13,7 +13,7 @@ def init_postgresql_fts(apps, schema_editor):
                             askbot.get_install_directory(),
                             'search',
                             'postgresql',
-                            'thread_and_post_models_10032013.plsql'
+                            'thread_and_post_models_03012016.plsql'
                         )
         setup_full_text_search(script_path)
 
@@ -21,7 +21,7 @@ def init_postgresql_fts(apps, schema_editor):
                             askbot.get_install_directory(),
                             'search',
                             'postgresql',
-                            'user_profile_search_12192015.plsql'
+                            'user_profile_search_12202015.plsql'
                         )
         setup_full_text_search(script_path)
 

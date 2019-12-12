@@ -76,7 +76,7 @@ def calculate_localized_reps(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('askbot', '0009_auto_20160103_1150'),
+        ('askbot', '0008_auto_20160101_0951'),
     ]
 
     operations = [

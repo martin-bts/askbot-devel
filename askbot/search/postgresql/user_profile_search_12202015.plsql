@@ -1,9 +1,9 @@
-/* 
+/*
 Script depends on functions defined for general askbot full text search.
 to_tsvector(), add_tsvector_column()
 
 calculates text search vector for the user profile
-the searched fields are: 
+the searched fields are:
 1) user name
 2) user profile
 3) group names - for groups to which user belongs
@@ -40,8 +40,8 @@ BEGIN
         'INNER JOIN askbot_userprofile AS p ON id=p.auth_user_ptr_id ' ||
         'WHERE id=' || user_id;
     FOR onerow in EXECUTE user_query LOOP
-        tsv = tsv || 
-            to_tsvector(onerow.username) || 
+        tsv = tsv ||
+            to_tsvector(onerow.username) ||
             to_tsvector(onerow.real_name) ||
             to_tsvector(onerow.email);
     END LOOP;
@@ -69,7 +69,7 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS auth_user_tsv_update_trigger ON auth_user;
 
 CREATE TRIGGER auth_user_tsv_update_trigger
-BEFORE INSERT OR UPDATE ON auth_user 
+BEFORE INSERT OR UPDATE ON auth_user
 FOR EACH ROW EXECUTE PROCEDURE auth_user_tsv_update_handler();
 
 /* localized user profile trigger */
@@ -132,7 +132,7 @@ AFTER INSERT OR DELETE
 ON auth_user_groups
 FOR EACH ROW EXECUTE PROCEDURE group_membership_tsv_update_handler();
 
-/* todo: whenever group name changes - also 
+/* todo: whenever group name changes - also
  * reindex users belonging to the group */
 
 DROP INDEX IF EXISTS auth_user_search_idx;
