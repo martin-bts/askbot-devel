@@ -18,7 +18,9 @@ class ConfigField(ObjectWithOutput):
         the default value, if the user didn't provide any value. There must be
         a boolean response, if the installation can proceed with :var:value as
         the setting for this ConfigField."""
-        #self.print(f'This is {cls.__name__}.acceptable({value}) {cls.defaultOk}', 2)
+        # self.print(f'This is {self.__class__.__name__}.acceptable({value}) '
+        #            f'"{self.default}" {None} {self.__class__.defaultOk} '
+        #            f'{value == self.default}', 2')
         if value is None and self.default is None or value == self.default:
             return self.defaultOk
         return True
@@ -27,7 +29,20 @@ class ConfigField(ObjectWithOutput):
         """Prompt the user to provide a value for this installation
         parameter."""
         user_prompt = self.user_prompt
+        if current is None or current == '':
+            current = '(empty value)'
         if self.defaultOk is True:
             user_prompt += ' (Just press ENTER, to use the current '\
                         + f'value "{current}")'
         return console.simple_dialog(user_prompt)
+
+
+class AllowEmpty(ConfigField):
+    """This class is intended for running askbot-setup interactively.
+    Its default behaviour is a little different when handling type::None,
+    which the user cannot provide as input."""
+    defaultOk = True
+    default = ''
+
+    def acceptable(self, value):
+        return False if value is None else super().acceptable(value)
