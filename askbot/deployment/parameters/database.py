@@ -1,7 +1,7 @@
 import os
 from askbot.utils import console
 from askbot.deployment import path_utils
-from askbot.deployment.base import ConfigField
+from askbot.deployment.base import ConfigField, AllowEmpty
 
 class DbUser(ConfigField):
     defaultOk = False
@@ -9,21 +9,15 @@ class DbUser(ConfigField):
     user_prompt = 'Please enter the username for accessing the database'
 
 
-class DbPass(ConfigField):
-    defaultOk = False
-    default = ''
+class DbPass(AllowEmpty):
     user_prompt = 'Please enter the password for accessing the database'
 
 
-class DbHost(ConfigField):
-    defaultOk = False
-    default = ''
+class DbHost(AllowEmpty):
     user_prompt = 'Please enter the database hostname'
 
 
-class DbPort(ConfigField):
-    defaultOk = False
-    default = ''
+class DbPort(AllowEmpty):
     user_prompt = 'Please enter the database port'
 
 

@@ -266,6 +266,12 @@ class AskbotSetup(ObjectWithOutput):
         options['secret_key'] = secret_key
         options['app_name'] = app_name
         options['create_project'] = str.lower(options['create_project'])
+        # When asking for the DB host, port and password - hitting enter should set empty string value.
+        if self.configManagers.interactive:
+            for i in ['database_host', 'database_port', 'database_password']:
+                v = options[i]
+                if v == '':
+                    options[i] = None
         return options
 
     def __call__(self): # this is the main part of the original askbot_setup()

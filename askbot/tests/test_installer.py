@@ -8,6 +8,7 @@ from unittest.mock import patch, MagicMock, mock_open
 
 import tempfile
 import os.path
+import sys
 
 class MockInput:
   def __init__(self, *args):
@@ -360,28 +361,38 @@ class FilesystemTests(AskbotTestCase):
 
     def test_project_dir(self):
         manager, new_empty = self._setUpTest()
+        with tempfile.TemporaryDirectory() as existing_dir:
+            with tempfile.NamedTemporaryFile(dir=existing_dir) as existing_file:
+                forbidden_dir = None
+                for p in sys.path:
+                    try:
+                        x = tempfile.NamedTemporaryFile(dir=p)
+                    except PermissionError as e:
+                        forbidden_dir = p
+                        break
+                    except FileNotFoundError as e:
+                        pass
+                failing_dir_names = [
+                    '', # empty string violates name restriction
+                    'os', # name of a module in PYTHONPATH causes a name collision
+                    'askbot',  # name of a module in PYTHONPATH causes a name collision
+                    existing_file, # is a file
+                    forbidden_dir, # cannot write there
+                    os.path.join(forbidden_dir, 'some-package', 'module', 'submodule', 'subsubmodule'), # practice recursion
+                ]
+                for name in failing_dir_names[-1:]:
+                    parameters = {'dir_name': name}
+                    error = self.run_complete(manager, parameters)
+                    self.assertIs(type(error), ValueError)
 
-        failing_dir_names = [
-            '', # empty string violates name restriction
-            'os', # name of a module in PYTHONPATH causes a name collision
-            'askbot',  # name of a module in PYTHONPATH causes a name collision
-            '/bin/bash', # is a file
-            '/root', # cannot write there
-            '/usr/local/lib/python3.x/dist-packages/some-package/module/submodule/subsubmodule', # practice recursion
-        ]
-        for name in failing_dir_names[-1:]:
-            parameters = {'dir_name': name}
-            error = self.run_complete(manager, parameters)
-            self.assertIs(type(error), ValueError)
-
-        valid_dir_names = [
-            'validDeployment',
-            '/tmp/validDeployment',
-        ]
-        for name in valid_dir_names:
-            parameters = {'dir_name': name}
-            e = self.run_complete(manager, parameters)
-            self.assertIsNone(e)
+                valid_dir_names = [
+                    'validDeployment',
+                    os.path.join(existing_dir, 'validDeployment'),
+                ]
+                for name in valid_dir_names:
+                    parameters = {'dir_name': name}
+                    e = self.run_complete(manager, parameters)
+                    self.assertIsNone(e)
 
     def test_app_name(self):
         manager, new_empty = self._setUpTest()
@@ -492,7 +503,8 @@ class MainInstallerTests(AskbotTestCase):
         self.installer.parser.parse_args = parse_args
         self.installer.deploy_askbot = deploy_askbot
         try:
-            self.installer()
+            with patch('builtins.input', new=MockInput('', '', '')):
+             self.installer()
         except Exception as error:
             self.fail(f'Running the installer raised {error}')
 
@@ -508,7 +520,8 @@ class MainInstallerTests(AskbotTestCase):
         self.installer.parser.parse_args = parse_args
         fake_open = mock_open(read_data='foobar')
         #with patch('askbot.deployment.path_utils.create_path'), patch('shutil.copy'), patch('builtins.open', fake_open):
-        self.installer()
+        with patch('builtins.input', new=MockInput('', '', '')):
+            self.installer()
 
 
 class DeployObjectsTest(AskbotTestCase):
