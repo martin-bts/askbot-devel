@@ -215,7 +215,7 @@ CACHES = {
     }
 }
 
-{% if cache_engine and cache_engine == 'redis' %}
+{% if cache_engine and cache_engine == 2 %}
 CACHES['redis'] = {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': [
@@ -238,7 +238,7 @@ CACHES['redis'] = {
         },
     }
 cache_select_default = 'redis'
-{% elif cache_engine and cache_engine == 'memcached' %}
+{% elif cache_engine and cache_engine == 1 %}
 CACHES['memcached'] = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': [
