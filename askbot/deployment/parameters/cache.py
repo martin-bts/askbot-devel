@@ -1,5 +1,5 @@
 from askbot.utils import console
-from askbot.deployment.base import ConfigField
+from askbot.deployment.base import ConfigField, AllowEmpty
 
 class CacheEngine(ConfigField):
     defaultOk = False
@@ -47,6 +47,5 @@ class CacheDb(ConfigField):
     defaultOk = True
     user_prompt = 'Please enter the cache database name to use'
 
-class CachePass(ConfigField):
-    defaultOk=True
+class CachePass(AllowEmpty):
     user_prompt='Please enter the shared secret for accessing the cache'

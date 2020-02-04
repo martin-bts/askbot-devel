@@ -177,6 +177,7 @@ class AskbotSetup(ObjectWithOutput):
         self.parser.add_argument('--cache-password',
             dest='cache_password',
             action='store',
+            default='',
             help='The password to connect to the cache.'
         )
 
@@ -268,10 +269,18 @@ class AskbotSetup(ObjectWithOutput):
         options['create_project'] = str.lower(options['create_project'])
         # When asking for the DB host, port and password - hitting enter should set empty string value.
         if self.configManagers.interactive:
-            for i in ['database_host', 'database_port', 'database_password']:
+            # This is a bit fragile because it exploits the fact that config
+            # managers are registered under names which happen to be the
+            # prefixes of the options the manage. There isn't any requirement
+            # that demands this relation between names.
+            for i in ['database_host', 'database_port', 'database_password',
+                      'cache_password']:
                 v = options[i]
-                if v == '':
-                    options[i] = None
+                cm_name = i.split('_')[0] # <-- fragile
+                cm = self.configManagers.configManager(cm_name)
+                cf = cm.configField(i)
+                if v == cf.default:
+                    cf.defaultOk = False
         return options
 
     def __call__(self): # this is the main part of the original askbot_setup()

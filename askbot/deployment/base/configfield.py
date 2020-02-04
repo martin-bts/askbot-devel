@@ -46,3 +46,7 @@ class AllowEmpty(ConfigField):
 
     def acceptable(self, value):
         return False if value is None else super().acceptable(value)
+
+    def ask_user(self, current):
+        self.defaultOk = True
+        return super(AllowEmpty, self).ask_user(current)

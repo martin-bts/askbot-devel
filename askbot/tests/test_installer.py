@@ -114,9 +114,9 @@ class DatabaseEngineTest(AskbotTestCase):
         ordered_acceptable_answers = (
             ('database_name', 'testDB'),
             ('database_user', 'askbot'),
-            ('database_password', 'd34db33f'),
-            ('database_host', 'localhost'),
-            ('database_port', '5432'),
+            # ('database_password', 'd34db33f'),
+            # ('database_host', 'localhost'),
+            # ('database_port', '5432'),
         )
 
         acceptable_answers = dict(ordered_acceptable_answers)
@@ -192,7 +192,7 @@ class CacheEngineTest(AskbotTestCase):
 
     def _setUpTest(self):
         engines = self.manager._catalog['cache_engine'].cache_engines
-        new_empty = lambda: dict([(k, None) for k in self.manager.keys])
+        new_empty = lambda: dict([(k, self.manager._catalog[k].default) for k in self.manager.keys])
         return self.manager, engines, new_empty
 
     @staticmethod
@@ -275,7 +275,7 @@ class CacheEngineTest(AskbotTestCase):
         acceptable_answers = {
             'cache_nodes': '127.0.0.1:6379',
             'cache_db': 1,
-            'cache_password': 'd34db33f',
+            # 'cache_password': 'd34db33f',
         }
         expected_issues = acceptable_answers.keys()
         met_issues = set()

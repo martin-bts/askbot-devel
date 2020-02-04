@@ -13,7 +13,7 @@ class CacheConfigManager(ConfigManager):
                 self._catalog['cache_nodes'].defaultOk = True
             elif value == 2:
                 self._catalog['cache_db'].defaultOk = False
-                self._catalog['cache_password'].defaultOk = False
+                # self._catalog['cache_password'].defaultOk = False
 
     def reset(self):
         super(CacheConfigManager, self).reset()
@@ -28,9 +28,9 @@ class DbConfigManager(ConfigManager):
     def reset(self):
         super(DbConfigManager, self).reset()
         self._catalog['database_user'].defaultOk = False
-        self._catalog['database_password'].defaultOk = False
-        self._catalog['database_host'].defaultOk = False
-        self._catalog['database_port'].defaultOk = False
+        self._catalog['database_password'].defaultOk = True
+        self._catalog['database_host'].defaultOk = True
+        self._catalog['database_port'].defaultOk = True
 
     def _remember(self, name, value):
         if name == 'database_engine':
