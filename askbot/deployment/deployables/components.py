@@ -33,7 +33,7 @@ class AskbotApp(DeployableComponent):
     default_name = 'askbot_app'
     contents = {
         'prestart.sh': CopiedFile,
-        'prestart.py': CopiedFile,
+        'prestart.py': RenderedFile,
         'uwsgi.ini': RenderedFile,  # askbot_site, askbot_app
     }
 
