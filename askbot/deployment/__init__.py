@@ -6,15 +6,15 @@ import os.path
 import sys
 
 from argparse import ArgumentParser
-from askbot.deployment import messages
-from askbot.deployment.messages import print_message
-from askbot.deployment import path_utils
+from . import messages
+from .messages import print_message
+from . import path_utils
 from askbot.utils.functions import generate_random_key
-from askbot.deployment.base.template_loader import DeploymentTemplate
-from askbot.deployment.parameters import askbotCollection
-from askbot.deployment.base import ObjectWithOutput
-from askbot.deployment.deployables.components import DeployableComponent
-import askbot.deployment.deployables as deployable
+from .base.template_loader import DeploymentTemplate
+from .parameters import askbotCollection
+from .base import ObjectWithOutput
+from .deployables.components import DeployableComponent
+from . import deployables as deployable
 
 class AskbotSetup(ObjectWithOutput):
     ASKBOT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -267,6 +267,7 @@ class AskbotSetup(ObjectWithOutput):
         options['secret_key'] = secret_key
         options['app_name'] = app_name
         options['create_project'] = str.lower(options['create_project'])
+        self.configManagers.interactive = options['interactive']
         # When asking for the DB host, port and password - hitting enter should set empty string value.
         if self.configManagers.interactive:
             # This is a bit fragile because it exploits the fact that config
@@ -324,7 +325,7 @@ class AskbotSetup(ObjectWithOutput):
         site.context.update(options)
 
         # install container specifics, analogous to site
-        uwsgi = deployable.AskbotApp()
+        uwsgi = deployable.AskbotApp(options['app_name'])
         uwsgi.src_dir = os.path.join(self.ASKBOT_ROOT, self.SOURCE_DIR)
         uwsgi.dst_dir = options['dir_name']
         uwsgi.context.update({
