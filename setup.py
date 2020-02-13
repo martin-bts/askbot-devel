@@ -9,7 +9,7 @@ setup(
     name = "askbot",
     version = askbot.get_version(),#remember to manually set this correctly
     description = 'Question and Answer forum, like StackOverflow, written in python and Django',
-    packages = find_packages(exclude=['testproject']),
+    packages = find_packages(exclude=['testproject', 'testproject.testproject']),
     author = 'Evgeny.Fadeev',
     author_email = 'evgeny.fadeev@gmail.com',
     license = 'GPLv3',
@@ -35,18 +35,17 @@ setup(
         'Natural Language :: Serbian',
         'Natural Language :: Turkish',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: JavaScript',
         'Topic :: Communications :: Usenet News',
         'Topic :: Communications :: Email :: Mailing List Servers',
         'Topic :: Communications',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
-    long_description = """Askbot will work alone or with other django apps (with some limitations, please see below), Django 1.8, PostgresQL(recommended) and MySQL >5.6
+    long_description = """Askbot will work alone or with other django apps (with some limitations, please see below), Django 2.2, PostgresQL(recommended) and MySQL >5.6
 
-    This version of Askbot supports only Django 1.8.
+    This version of Askbot supports only Django 2.2.
 
     To upgrade, or select version of Askbot working with earlier versions of Django,
     please follow instructions at
