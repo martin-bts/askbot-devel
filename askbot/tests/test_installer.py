@@ -479,7 +479,8 @@ class MainInstallerTests(AskbotTestCase):
         mva = ['--dir-name', destdir.name,
                '--db-engine', '2',
                '--db-name', '/tmp/AskbotTest.db',
-               '--cache-engine', '3']
+               '--cache-engine', '3',
+               '--cache-password', 'foobar']
 
         run_opts = ['--dry-run', '-v', '0']
         with patch('sys.exit') as mock:
