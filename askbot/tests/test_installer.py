@@ -376,10 +376,16 @@ class FilesystemTests(AskbotTestCase):
                     '', # empty string violates name restriction
                     'os', # name of a module in PYTHONPATH causes a name collision
                     'askbot',  # name of a module in PYTHONPATH causes a name collision
-                    existing_file, # is a file
-                    forbidden_dir, # cannot write there
-                    os.path.join(forbidden_dir, 'some-package', 'module', 'submodule', 'subsubmodule'), # practice recursion
+                    existing_file.name, # is a file
                 ]
+                if forbidden_dir is not None:
+                    failing_dir_names = failing_dir_names + [
+                        forbidden_dir, # cannot write there
+                        os.path.join( # practice recursion
+                            forbidden_dir, 'some-package', 'module',
+                            'submodule', 'subsubmodule',
+                        )
+                    ]
                 for name in failing_dir_names[-1:]:
                     parameters = {'dir_name': name}
                     error = self.run_complete(manager, parameters)
