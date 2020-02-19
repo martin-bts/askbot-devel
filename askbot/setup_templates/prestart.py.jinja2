@@ -88,7 +88,7 @@ if do_uwsgi_ini is True:
 
 if os.environ.get('NO_CRON') is None:
     print('Preparing cron_environ')
-    with open('/cron_environ', 'w+') as cron_env:
+    with open(os.path.join(project_dir, 'cron_environ'), 'w+') as cron_env:
         for var in [ f'{name}="{os.environ.get(name)}"'
             for name in [ 'PATH', 'DATABASE_URL', 'SECRET_KEY',
                        'PYTHONUNBUFFERED', 'ASKBOT_SITE' ]]:
