@@ -76,7 +76,7 @@ def owner_or_moderator_required(func):
                 #as this one should be accessible to all
                 return HttpResponseRedirect(request.path)
         else:
-            next_url = request.path + '?' + urllib.parse.urlencode(request.REQUEST)
+            next_url = request.path + '?' + urllib.parse.urlencode(getattr(request,request.method))
             params = '?next=%s' % encode_jwt({'next_url': next_url})
             return HttpResponseRedirect(url_utils.get_login_url() + params)
         return func(request, profile_owner, context)
