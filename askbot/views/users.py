@@ -76,7 +76,7 @@ def owner_or_moderator_required(func):
                 #as this one should be accessible to all
                 return HttpResponseRedirect(request.path)
         else:
-            next_url = request.path + '?' + urllib.parse.urlencode(request.REQUEST)
+            next_url = request.path + '?' + urllib.parse.urlencode(getattr(request,request.method))
             params = '?next=%s' % encode_jwt({'next_url': next_url})
             return HttpResponseRedirect(url_utils.get_login_url() + params)
         return func(request, profile_owner, context)
@@ -545,7 +545,7 @@ def user_stats(request, user, context):
     question_filter = {}
 
     is_author = (request.user == user)
-    is_mod = request.user.is_authenticated() and request.user.is_administrator_or_moderator()
+    is_mod = request.user.is_authenticated and request.user.is_administrator_or_moderator()
     if not (is_mod or is_author):
         question_filter['is_anonymous'] = False
 
@@ -1436,7 +1436,7 @@ def user(request, id, slug=None, tab_name=None):
     if profile_owner.is_terminated():
         if request.user.pk == profile_owner.pk:
             return render(request, 'user_profile/account_terminated.html')
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if not request.user.is_administrator_or_moderator():
                 raise Http404
         else:

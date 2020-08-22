@@ -248,7 +248,8 @@ def complete_discourse_signin(request):
     discourse_login_session = request.session.get('discourse_login')
     nonce = discourse_login_session.get('nonce', None)
     from askbot.deps.django_authopenid.providers import discourse
-    form = discourse.DiscourseSsoForm(request.REQUEST, nonce=nonce)
+    data = getattr(request,request.method)
+    form = discourse.DiscourseSsoForm(data, nonce=nonce)
     next_url = discourse_login_session.get('success_url', reverse('questions'))
     if not form.is_valid():
         # if form is invalid - show login screen with error message
@@ -1502,7 +1503,7 @@ def recover_account(request):
             return render(request, 'authopenid/verify_email.html', data)
         return show_signin_view(request, account_recovery_form=form)
 
-    key = request.REQUEST.get('validation_code', None)
+    key = getattr(request,request.method).get('validation_code', None)
     return auth_user_by_token(request, key)
 
 def auth_user_by_token(request, key):
