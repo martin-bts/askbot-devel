@@ -1,3 +1,8 @@
+===========================================================
+ATTENTION: master branch is experimental, please read below
+===========================================================
+
+
 ====================================
 Askbot - a Django Q&A forum platform
 ====================================
@@ -12,11 +17,11 @@ Branch `0.7.x` - is the latest version supporting Django 1.5
 
 Branch `0.8.x` - transitional version for the upgrade of the database to Django 1.7
 
-Branch `0.9.x` - supports Django 1.7
+Branch `0.9.x` supports Django 1.7
 
-Branch `master` - supports Django 1.8
+Branch `0.10.x` - supports Django 1.8 - the last version series to support Python 2.7
 
-Branch `0.11.x` - supports Django 2.2
+Branch `master` - released as versions 0.11.x - supports Django 2.2/Python 3
 
 How to contribute
 =================
@@ -40,7 +45,6 @@ License, copyright and trademarks
 =================================
 Askbot software is licensed under GPL, version 3.
 
-Copyright Askbot S.p.A and the project contributors, 2010-2019.
+Copyright Askbot S.p.A and the project contributors, 2010-2020.
 
 "Askbot" is a trademark and service mark registered in the United States, number 4323777.
-

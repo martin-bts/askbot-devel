@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from askbot.conf import settings as askbot_settings
 from askbot.utils import decorators
+from askbot.utils.functions import encode_jwt
 from askbot import models
 from askbot import forms
 
@@ -102,10 +103,8 @@ def ask_widget(request, widget_id):
                 return redirect('ask_by_widget_complete')
             else:
                 request.session['widget_question'] = data_dict
-                next_url = '%s?next=%s' % (
-                        reverse('widget_signin'),
-                        reverse('ask_by_widget', args=(widget.id,))
-                )
+                next_jwt = encode_jwt({'next_url': reverse('ask_by_widget', args=(widget.id,))})
+                next_url = '%s?next=%s' % (reverse('widget_signin'), next_jwt)
                 return redirect(next_url)
     else:
         if 'widget_question' in request.session and \
@@ -118,8 +117,8 @@ def ask_widget(request, widget_id):
                 return redirect('ask_by_widget_complete')
             else:
                 #FIXME: this redirect is temporal need to create the correct view
-                next_url = '%s?next=%s' % (reverse('widget_signin'),
-                                           reverse('ask_by_widget', args=(widget_id,)))
+                next_jwt = encode_jwt({'next_url': reverse('ask_by_widget', args=(widget_id,))})
+                next_url = '%s?next=%s' % (reverse('widget_signin'), next_jwt)
                 return redirect(next_url)
 
         form = forms.AskWidgetForm(
@@ -189,23 +188,27 @@ def edit_widget(request, model, widget_id):
         form = form_class(request.POST)
         if form.is_valid():
             form_dict = dict.copy(form.cleaned_data)
+
             id_noid_keys = [(k,k.split('_id')[0]) for k in
                             widget.__dict__.keys()
                             if k.endswith('_id')]
+
             for w_id, wo_id in id_noid_keys:
                 if form_dict[wo_id]:
                     form_dict[w_id] = form_dict[wo_id].id
                 del form_dict[wo_id]
+
             widget.__dict__.update(form_dict)
             widget.save()
             return redirect('list_widgets', model=model)
     else:
         initial_dict = dict.copy(widget.__dict__)
         rename_keys = [(k,k.split('_id')[0]) for k in initial_dict.keys()
-                        if k.endswith('_id')]
+                       if k.endswith('_id')]
         for k_old, k_new in rename_keys:
             initial_dict[k_new] = initial_dict[k_old]
             del initial_dict[k_old]
+
         del initial_dict['_state']
         form = form_class(initial=initial_dict)
 

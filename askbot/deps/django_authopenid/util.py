@@ -2,8 +2,6 @@
 import cgi
 import functools
 import http.client
-import jwt
-import random
 import re
 import urllib.request, urllib.parse, urllib.error
 import urllib.parse
@@ -19,7 +17,7 @@ import oauth2 as oauth # OAuth1 protocol
 from django.db.models.query import Q
 from django.conf import settings
 from django.urls import reverse
-import simplejson
+import json
 from django.utils.translation import ugettext as _
 from django.core.exceptions import ImproperlyConfigured
 from askbot.deps.django_authopenid import providers
@@ -44,7 +42,11 @@ from .models import Association, Nonce
 
 __all__ = ['OpenID', 'DjangoOpenIDStore', 'from_openid_response']
 
-ALLOWED_LOGIN_TYPES = ('password', 'oauth', 'oauth2', 'openid-direct', 'openid-username', 'wordpress')
+ALLOWED_LOGIN_TYPES = (
+    'password', 'oauth', 'oauth2',
+    'openid-direct', 'openid-username', 'wordpress',
+    'discourse-site'
+)
 
 def email_is_blacklisted(email):
     patterns = askbot_settings.BLACKLISTED_EMAIL_PATTERNS
@@ -492,7 +494,7 @@ def get_enabled_major_login_providers():
             'resource_endpoint': 'https://graph.facebook.com/v3.2/me',
             'icon_media_path': 'images/jquery-openid/facebook.gif',
             'get_user_id_function': get_facebook_user_id,
-            'response_parser': simplejson.loads,
+            'response_parser': json.loads,
             'extra_auth_params': {'scope': ['email']},
         }
 
@@ -506,7 +508,7 @@ def get_enabled_major_login_providers():
             'resource_endpoint': 'https://www.yammer.com/api/v1/users/current.json',
             'icon_media_path': 'images/jquery-openid/yammer.png',
             'get_user_id_function': get_yammer_user_id,
-            'response_parser': simplejson.loads,
+            'response_parser': json.loads,
         }
 
     if askbot_settings.WINDOWS_LIVE_KEY and askbot_settings.WINDOWS_LIVE_SECRET:
@@ -519,7 +521,7 @@ def get_enabled_major_login_providers():
             'resource_endpoint': 'https://apis.live.net/v5.0/me',
             'icon_media_path': 'images/jquery-openid/windows-live.png',
             'get_user_id_function': get_windows_live_user_id,
-            'response_parser': simplejson.loads,
+            'response_parser': json.loads,
             'extra_auth_params': {'scope': ('wl.basic',)},
         }
 
@@ -533,7 +535,7 @@ def get_enabled_major_login_providers():
             'resource_endpoint': 'https://graph.microsoft.com/v1.0/me',
             'icon_media_path': 'images/jquery-openid/microsoft-azure.png',
             'get_user_id_function': get_microsoft_azure_user_id,
-            'response_parser': simplejson.loads,
+            'response_parser': json.loads,
             'extra_auth_params': {'scope': ('User.Read',),},
         }
 
@@ -544,6 +546,14 @@ def get_enabled_major_login_providers():
             'type': 'openid-direct',
             'openid_endpoint': 'https://id.fedoraproject.org/openid/',
             'icon_media_path': 'images/jquery-openid/fedora.gif'
+        }
+
+    if askbot_settings.SIGNIN_DISCOURSE_ENABLED:
+        data['discourse'] = {
+            'name': 'discourse',
+            'display_name': 'Discourse',
+            'type': 'discourse',
+            'icon_media_path': 'images/jquery-openid/discourse-button.png'
         }
 
     if askbot_settings.TWITTER_KEY and askbot_settings.TWITTER_SECRET:
@@ -574,8 +584,7 @@ def get_enabled_major_login_providers():
         client = oauth.Client(consumer, token=token)
         url = 'https://identi.ca/api/account/verify_credentials.json'
         response, content = client.request(url, 'GET')
-        json = simplejson.loads(content)
-        return json['id']
+        return json.loads(content)['id']
 
     if askbot_settings.IDENTICA_KEY and askbot_settings.IDENTICA_SECRET:
         data['identi.ca'] = {
@@ -684,7 +693,7 @@ def get_enabled_major_login_providers():
         'resource_endpoint': 'https://api.github.com/user',
         'icon_media_path': 'images/jquery-openid/GitHub_Logo.png',
         'get_user_id_function': get_github_user_id,
-        'response_parser': simplejson.loads,
+        'response_parser': json.loads,
     }
 
     if askbot_settings.SIGNIN_OPENSTACKID_ENABLED and askbot_settings.OPENSTACKID_ENDPOINT_URL:
@@ -927,7 +936,7 @@ class OAuthConnection(object):
         if provider_name == 'mediawiki':
             return providers.mediawiki.Provider()
         else:
-            return super(OAuthConnection, cls).__new__(cls, provider_name)
+            return super(OAuthConnection, cls).__new__(cls)
 
     def __init__(self, provider_name):
         """initializes oauth connection
@@ -1120,7 +1129,7 @@ def mozilla_persona_get_email_from_assertion(assertion):
     conn.request('POST', '/verify', params, headers)
     response = conn.getresponse()
     if response.status == 200:
-        data = simplejson.loads(response.read())
+        data = json.loads(response.read())
         email = data.get('email')
         if email:
             return email
@@ -1138,7 +1147,7 @@ def google_gplus_get_openid_data(client):
         token = token.encode('ascii')
         token = token + '='*(4 - len(token)%4)
         token = base64.urlsafe_b64decode(token)
-        data = simplejson.loads(token)
+        data = json.loads(token)
         return data.get('openid_id'), data.get('email')
     return None
 

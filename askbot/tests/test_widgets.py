@@ -5,6 +5,7 @@ from django.test.client import Client
 from django.conf import settings as django_settings
 from django.urls import reverse
 from django.utils import translation, timezone
+import unittest
 from django.test import signals
 
 def patch_jinja2():
@@ -36,12 +37,14 @@ class WidgetViewsTests(AskbotTestCase):
         self.good_data = {'title': 'This is a title question',
                           'ask_anonymously': False}
 
+    @unittest.skip('widgets are disabled')
     def test_post_with_auth(self):
         self.client.login(username='user1', password='sample')
         response = self.client.post(reverse('ask_by_widget', args=(self.widget.id, )), self.good_data)
         self.assertEqual(response.status_code, 302)
         self.client.logout()
 
+    @unittest.skip('widgets are disabled')
     def test_post_without_auth(self):
         #weird issue
         response = self.client.post(reverse('ask_by_widget', args=(self.widget.id, )), self.good_data)
@@ -50,6 +53,7 @@ class WidgetViewsTests(AskbotTestCase):
         self.assertEqual(self.client.session['widget_question']['title'],
                           self.good_data['title'])
 
+    @unittest.skip('widgets are disabled')
     def test_post_after_login(self):
         widget_question_data = { 'title': 'testing post after login, does it?',
                                  'author': self.user,
@@ -73,6 +77,7 @@ class WidgetViewsTests(AskbotTestCase):
         self.assertEqual(response.status_code, 302)
         #verify posting question
 
+    @unittest.skip('widgets are disabled')
     def test_render_widget_view(self):
         response = self.client.get(reverse('render_ask_widget', args=(self.widget.id, )))
         self.assertEqual(200, response.status_code)
@@ -82,6 +87,7 @@ class WidgetViewsTests(AskbotTestCase):
 
 class WidgetLoginViewTest(AskbotTestCase):
 
+    @unittest.skip('widgets are disabled')
     def test_correct_template_loading(self):
         client = Client()
         response = client.get(reverse('widget_signin'))
@@ -96,28 +102,32 @@ class WidgetCreatorViewsTests(AskbotTestCase):
         self.client = Client()
         self.user = self.create_user('user1')
         self.user.set_password('testpass')
-        self.user.set_admin_status()
+        self.user.set_status('d')
         self.user.save()
         self.widget = models.AskWidget.objects.create(title='foo widget')
 
+    @unittest.skip('widgets are disabled')
     def test_list_ask_widget_view(self):
         self.client.login(username='user1', password='testpass')
         response = self.client.get(reverse('list_widgets', args=('ask',)))
         self.assertEqual(response.status_code, 200)
         self.assertTrue('widgets' in response.context)
 
+    @unittest.skip('widgets are disabled')
     def test_create_ask_widget_get(self):
         self.client.login(username='user1', password='testpass')
         response = self.client.get(reverse('create_widget', args=('ask',)))
         self.assertEqual(response.status_code, 200)
         self.assertTrue('form' in response.context)
 
+    @unittest.skip('widgets are disabled')
     def test_create_ask_widget_post(self):
         self.client.login(username='user1', password='testpass')
         post_data = {'title': 'Test widget'}
         response = self.client.post(reverse('create_widget', args=('ask',)), post_data)
         self.assertEqual(response.status_code, 302)
 
+    @unittest.skip('widgets are disabled')
     def test_edit_ask_widget_get(self):
         self.client.login(username='user1', password='testpass')
         response = self.client.get(reverse('edit_widget',
@@ -125,6 +135,7 @@ class WidgetCreatorViewsTests(AskbotTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue('form' in response.context)
 
+    @unittest.skip('widgets are disabled')
     def test_edit_ask_widget_post(self):
         self.client.login(username='user1', password='testpass')
         post_data = {'title': 'Test lalalla'}
@@ -132,6 +143,7 @@ class WidgetCreatorViewsTests(AskbotTestCase):
             args=('ask', self.widget.id, )), post_data)
         self.assertEqual(response.status_code, 302)
 
+    @unittest.skip('widgets are disabled')
     def test_delete_ask_widget_get(self):
         self.client.login(username='user1', password='testpass')
         response = self.client.get(reverse('delete_widget',
@@ -139,6 +151,7 @@ class WidgetCreatorViewsTests(AskbotTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue('widget' in response.context)
 
+    @unittest.skip('widgets are disabled')
     def test_delete_ask_widget_post(self):
         self.client.login(username='user1', password='testpass')
         response = self.client.post(reverse('delete_widget',
@@ -174,6 +187,7 @@ class QuestionWidgetViewsTests(AskbotTestCase):
         for title in titles:
             self.post_question(title=title, tags=tagnames)
 
+    @unittest.skip('widgets are disabled')
     def test_valid_response(self):
         filter_params = {
             'title__icontains': self.widget.search_query,

@@ -8,7 +8,7 @@ from django.core import exceptions as django_exceptions
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseForbidden, Http404
 from django.http import HttpResponseRedirect
-import simplejson
+import json
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.utils.encoding import smart_str
@@ -16,6 +16,7 @@ from askbot import exceptions as askbot_exceptions
 from askbot.conf import settings as askbot_settings
 from askbot.utils import url_utils
 from askbot.utils.html import site_url
+from askbot.utils.functions import encode_jwt
 
 
 def auto_now_timestamp(func):
@@ -39,8 +40,8 @@ def ajax_login_required(view_func):
         if request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         else:
-            json = simplejson.dumps({'login_required':True})
-            return HttpResponseForbidden(json, content_type='application/json')
+            content = json.dumps({'login_required':True})
+            return HttpResponseForbidden(content, content_type='application/json')
     return wrap
 
 
@@ -105,15 +106,15 @@ def ajax_only(view_func):
                 'message': message,
                 'success': 0
             }
-            return HttpResponse(simplejson.dumps(data), content_type='application/json')
+            return HttpResponse(json.dumps(data), content_type='application/json')
 
         if isinstance(data, HttpResponse):#is this used?
             data.content_type = 'application/json'
             return data
         else:
             data['success'] = 1
-            json = simplejson.dumps(data)
-            return HttpResponse(json, content_type='application/json')
+            content = json.dumps(data)
+            return HttpResponse(content, content_type='application/json')
     return wrapper
 
 def check_authorization_to_post(func_or_message):
@@ -127,8 +128,8 @@ def check_authorization_to_post(func_or_message):
             if request.user.is_anonymous:
                 #todo: expand for handling ajax responses
                 if askbot_settings.ALLOW_POSTING_BEFORE_LOGGING_IN == False:
-                    request.user.message_set.create(message=str(message))
-                    params = 'next=%s' % request.path
+                    request.user.message_set.create(message=message)
+                    params = 'next=%s' % encode_jwt({'next_url': request.path})
                     return HttpResponseRedirect(url_utils.get_login_url() + '?' + params)
             return view_func(request, *args, **kwargs)
         return wrapper

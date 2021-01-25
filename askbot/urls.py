@@ -16,6 +16,7 @@ from askbot import views
 from askbot.feed import RssLastestQuestionsFeed, RssIndividualQuestionFeed
 from askbot.sitemap import QuestionsSitemap
 from askbot.utils.url_utils import service_url
+import askbot.deps.django_authopenid.urls
 
 admin.autodiscover()
 #update_media_revision()#needs to be run once, so put it here
@@ -591,79 +592,78 @@ urlpatterns = [
         views.commands.join_or_leave_group,
         name='join_or_leave_group'
     ),
-    # widgets url!
-    service_url(
-        r'^%s$' % (pgettext('urls', 'widgets/')),
-        views.widgets.widgets,
-        name='widgets'
-    ),
-    service_url(
-        r'^%s%s(?P<widget_id>\d+)/$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'ask/')
-        ),
-        views.widgets.ask_widget,
-        name='ask_by_widget'
-    ),
-    service_url(
-        r'^%s%s(?P<widget_id>\d+).js$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'ask/')
-        ),
-        views.widgets.render_ask_widget_js,
-        name='render_ask_widget'
-    ),
-    service_url(
-        r'^%s%s(?P<widget_id>\d+).css$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'ask/')
-        ),
-        views.widgets.render_ask_widget_css,
-        name='render_ask_widget_css'
-    ),
-    service_url(
-        r'^%s%s%s$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'ask/'),
-            pgettext('urls', 'complete/')
-        ),
-        views.widgets.ask_widget_complete,
-        name='ask_by_widget_complete'
-    ),
-    service_url(
-        r'^%s(?P<model>\w+)/%s$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'create/')
-        ),
-        views.widgets.create_widget,
-        name='create_widget'
-    ),
-    service_url(
-        r'^%s(?P<model>\w+)/%s(?P<widget_id>\d+)/$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'edit/')
-        ),
-        views.widgets.edit_widget,
-        name='edit_widget'
-    ),
-    service_url(
-        r'^%s(?P<model>\w+)/%s(?P<widget_id>\d+)/$' % (
-            pgettext('urls', 'widgets/'),
-            pgettext('urls', 'delete/')
-        ),
-        views.widgets.delete_widget,
-        name='delete_widget'
-    ),
-    service_url(
-        r'^%s(?P<model>\w+)/$' % (pgettext('urls', 'widgets/')),
-        views.widgets.list_widgets,
-        name='list_widgets'
-    ),
-    service_url(
-        r'^widgets/%s(?P<widget_id>\d+)/$' % MAIN_PAGE_BASE_URL,
-        views.widgets.question_widget,
-        name='question_widget'
-    ),
+#    service_url(
+#        r'^%s$' % (pgettext('urls', 'widgets/')),
+#        views.widgets.widgets,
+#        name='widgets'
+#    ),
+#    service_url(
+#        r'^%s%s(?P<widget_id>\d+)/$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'ask/')
+#        ),
+#        views.widgets.ask_widget,
+#        name='ask_by_widget'
+#    ),
+#    service_url(
+#        r'^%s%s(?P<widget_id>\d+).js$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'ask/')
+#        ),
+#        views.widgets.render_ask_widget_js,
+#        name='render_ask_widget'
+#    ),
+#    service_url(
+#        r'^%s%s(?P<widget_id>\d+).css$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'ask/')
+#        ),
+#        views.widgets.render_ask_widget_css,
+#        name='render_ask_widget_css'
+#    ),
+#    service_url(
+#        r'^%s%s%s$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'ask/'),
+#            pgettext('urls', 'complete/')
+#        ),
+#        views.widgets.ask_widget_complete,
+#        name='ask_by_widget_complete'
+#    ),
+#    service_url(
+#        r'^%s(?P<model>\w+)/%s$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'create/')
+#        ),
+#        views.widgets.create_widget,
+#        name='create_widget'
+#    ),
+#    service_url(
+#        r'^%s(?P<model>\w+)/%s(?P<widget_id>\d+)/$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'edit/')
+#        ),
+#        views.widgets.edit_widget,
+#        name='edit_widget'
+#    ),
+#    service_url(
+#        r'^%s(?P<model>\w+)/%s(?P<widget_id>\d+)/$' % (
+#            pgettext('urls', 'widgets/'),
+#            pgettext('urls', 'delete/')
+#        ),
+#        views.widgets.delete_widget,
+#        name='delete_widget'
+#    ),
+#    service_url(
+#        r'^%s(?P<model>\w+)/$' % (pgettext('urls', 'widgets/')),
+#        views.widgets.list_widgets,
+#        name='list_widgets'
+#    ),
+#    service_url(
+#        r'^widgets/%s(?P<widget_id>\d+)/$' % MAIN_PAGE_BASE_URL,
+#        views.widgets.question_widget,
+#        name='question_widget'
+#    ),
     service_url(
         r'^get-perms-data/$',
         views.readers.get_perms_data,
@@ -712,13 +712,14 @@ urlpatterns = [
     url('^api/v1/users/(?P<user_id>\d+)/$', views.api_v1.user, name='api_v1_user'),
     url('^api/v1/questions/$', views.api_v1.questions, name='api_v1_questions'),
     url('^api/v1/questions/(?P<question_id>\d+)/$', views.api_v1.question, name='api_v1_question'),
+    url('^api/v1/answers/(?P<answer_id>\d+)/$', views.api_v1.answer, name='api_v1_answer'),
 ]
 
 if 'askbot.deps.django_authopenid' in settings.INSTALLED_APPS:
     urlpatterns.append(
         url(
             r'^%s' % pgettext('urls', 'account/'),
-            include('askbot.deps.django_authopenid.urls')
+            include(askbot.deps.django_authopenid.urls)
         )
     )
 
